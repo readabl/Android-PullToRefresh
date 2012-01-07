@@ -330,6 +330,9 @@ public abstract class PullToRefreshBase<T extends AbsListView> extends LinearLay
 					}
 					break;
 				case MotionEvent.ACTION_DOWN:
+          if (startY == -1) {
+            updateEventStates(event);
+          }
 					// We need to return true here so that we can later catch
 					// ACTION_MOVE
 					return true;
