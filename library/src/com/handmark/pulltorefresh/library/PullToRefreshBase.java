@@ -348,13 +348,10 @@ public abstract class PullToRefreshBase<T extends AbsListView> extends LinearLay
 				return true;
 			}
 
-			switch (event.getAction()) {
-				case MotionEvent.ACTION_MOVE:
-					if (checkEventForInitialPull(event)) {
-						return true;
-					}
-					break;
-			}
+      if (checkEventForInitialPull(event)) {
+        return true;
+      }
+      
 		}
 
 		return false;
@@ -535,7 +532,7 @@ public abstract class PullToRefreshBase<T extends AbsListView> extends LinearLay
 	}
 
 	private boolean checkEventForInitialPull(MotionEvent event) {
-		if (startY == -1 && isReadyForPull()) {
+		if (startY == -1) {
 			updateEventStates(event);
 
 			// Need to set current Mode if we're using both
