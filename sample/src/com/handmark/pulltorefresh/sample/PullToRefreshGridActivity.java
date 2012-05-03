@@ -6,10 +6,13 @@ import java.util.LinkedList;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener;
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
 import com.handmark.pulltorefresh.library.PullToRefreshGridView;
 
 public class PullToRefreshGridActivity extends Activity {
@@ -25,19 +28,31 @@ public class PullToRefreshGridActivity extends Activity {
 		setContentView(R.layout.pull_to_refresh_grid);
 
 		mPullRefreshGridView = (PullToRefreshGridView) findViewById(R.id.pull_refresh_grid);
-		mGridView = mPullRefreshGridView.getAdapterView();
+		mGridView = mPullRefreshGridView.getRefreshableView();
 
 		// Set a listener to be invoked when the list should be refreshed.
-		mPullRefreshGridView.setOnRefreshListener(new OnRefreshListener() {
+		mPullRefreshGridView.setOnRefreshListener(new OnRefreshListener2() {
+			
 			@Override
-			public void onRefresh() {
-				// Do work to refresh the list here.
+			public void onPullDownToRefresh() {
+				Toast.makeText(PullToRefreshGridActivity.this, "Pull Down!", Toast.LENGTH_SHORT).show();
 				new GetDataTask().execute();
 			}
+
+			@Override
+			public void onPullUpToRefresh() {
+				Toast.makeText(PullToRefreshGridActivity.this, "Pull Up!", Toast.LENGTH_SHORT).show();
+				new GetDataTask().execute();
+			}
+			
 		});
 
 		mListItems = new LinkedList<String>();
-		mListItems.addAll(Arrays.asList(mStrings));
+
+		TextView tv = new TextView(this);
+		tv.setGravity(Gravity.CENTER);
+		tv.setText("Empty View, Pull Down/Up to Add Items");
+		mPullRefreshGridView.setEmptyView(tv);
 
 		mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mListItems);
 		mGridView.setAdapter(mAdapter);
@@ -58,6 +73,7 @@ public class PullToRefreshGridActivity extends Activity {
 		@Override
 		protected void onPostExecute(String[] result) {
 			mListItems.addFirst("Added after refresh...");
+			mListItems.addAll(Arrays.asList(result));
 			mAdapter.notifyDataSetChanged();
 
 			// Call onRefreshComplete when the list has been refreshed.
@@ -68,6 +84,6 @@ public class PullToRefreshGridActivity extends Activity {
 	}
 
 	private String[] mStrings = { "Abbaye de Belloc", "Abbaye du Mont des Cats", "Abertam", "Abondance", "Ackawi",
-	        "Acorn", "Adelost", "Affidelice au Chablis", "Afuega'l Pitu", "Airag", "Airedale", "Aisy Cendre",
-	        "Allgauer Emmentaler" };
+			"Acorn", "Adelost", "Affidelice au Chablis", "Afuega'l Pitu", "Airag", "Airedale", "Aisy Cendre",
+			"Allgauer Emmentaler" };
 }

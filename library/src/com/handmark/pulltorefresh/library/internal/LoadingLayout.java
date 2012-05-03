@@ -1,6 +1,10 @@
 package com.handmark.pulltorefresh.library.internal;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
+import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,90 +24,124 @@ public class LoadingLayout extends FrameLayout {
 
 	static final int DEFAULT_ROTATION_ANIMATION_DURATION = 150;
 
-	private final ImageView headerImage;
-	private final ProgressBar headerProgress;
-	private final TextView headerText;
+	private final ImageView mHeaderImage;
+	private final ProgressBar mHeaderProgress;
+	private final TextView mHeaderText;
+	private final TextView mSubHeaderText;
 
-	private String pullLabel;
-	private String refreshingLabel;
-	private String releaseLabel;
+	private String mPullLabel;
+	private String mRefreshingLabel;
+	private String mReleaseLabel;
 
-	private final Animation rotateAnimation, resetRotateAnimation;
+	private final Animation mRotateAnimation, mResetRotateAnimation;
 
-	public LoadingLayout(Context context, final int mode, String releaseLabel, String pullLabel, String refreshingLabel) {
+	public LoadingLayout(Context context, final int mode, TypedArray attrs) {
 		super(context);
 		ViewGroup header = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.pull_to_refresh_header, this);
-		headerText = (TextView) header.findViewById(R.id.pull_to_refresh_text);
-		headerImage = (ImageView) header.findViewById(R.id.pull_to_refresh_image);
-		headerProgress = (ProgressBar) header.findViewById(R.id.pull_to_refresh_progress);
+		mHeaderText = (TextView) header.findViewById(R.id.pull_to_refresh_text);
+		mSubHeaderText = (TextView) header.findViewById(R.id.pull_to_refresh_sub_text);
+		mHeaderImage = (ImageView) header.findViewById(R.id.pull_to_refresh_image);
+		mHeaderProgress = (ProgressBar) header.findViewById(R.id.pull_to_refresh_progress);
 
 		final Interpolator interpolator = new LinearInterpolator();
-		rotateAnimation = new RotateAnimation(0, -180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
-		        0.5f);
-		rotateAnimation.setInterpolator(interpolator);
-		rotateAnimation.setDuration(DEFAULT_ROTATION_ANIMATION_DURATION);
-		rotateAnimation.setFillAfter(true);
+		mRotateAnimation = new RotateAnimation(0, -180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+				0.5f);
+		mRotateAnimation.setInterpolator(interpolator);
+		mRotateAnimation.setDuration(DEFAULT_ROTATION_ANIMATION_DURATION);
+		mRotateAnimation.setFillAfter(true);
 
-		resetRotateAnimation = new RotateAnimation(-180, 0, Animation.RELATIVE_TO_SELF, 0.5f,
-		        Animation.RELATIVE_TO_SELF, 0.5f);
-		resetRotateAnimation.setInterpolator(interpolator);
-		resetRotateAnimation.setDuration(DEFAULT_ROTATION_ANIMATION_DURATION);
-		resetRotateAnimation.setFillAfter(true);
-
-		this.releaseLabel = releaseLabel;
-		this.pullLabel = pullLabel;
-		this.refreshingLabel = refreshingLabel;
+		mResetRotateAnimation = new RotateAnimation(-180, 0, Animation.RELATIVE_TO_SELF, 0.5f,
+				Animation.RELATIVE_TO_SELF, 0.5f);
+		mResetRotateAnimation.setInterpolator(interpolator);
+		mResetRotateAnimation.setDuration(DEFAULT_ROTATION_ANIMATION_DURATION);
+		mResetRotateAnimation.setFillAfter(true);
 
 		switch (mode) {
 			case PullToRefreshBase.MODE_PULL_UP_TO_REFRESH:
-				headerImage.setImageResource(R.drawable.pulltorefresh_up_arrow);
+
+				// Load in labels
+				mHeaderImage.setImageResource(R.drawable.pulltorefresh_up_arrow);
+				mPullLabel = context.getString(R.string.pull_to_refresh_from_bottom_pull_label);
+				mRefreshingLabel = context.getString(R.string.pull_to_refresh_from_bottom_refreshing_label);
+				mReleaseLabel = context.getString(R.string.pull_to_refresh_from_bottom_release_label);
 				break;
 			case PullToRefreshBase.MODE_PULL_DOWN_TO_REFRESH:
 			default:
-				headerImage.setImageResource(R.drawable.pulltorefresh_down_arrow);
+				mHeaderImage.setImageResource(R.drawable.pulltorefresh_down_arrow);
+
+				// Load in labels
+				mPullLabel = context.getString(R.string.pull_to_refresh_pull_label);
+				mRefreshingLabel = context.getString(R.string.pull_to_refresh_refreshing_label);
+				mReleaseLabel = context.getString(R.string.pull_to_refresh_release_label);
 				break;
 		}
+
+		if (attrs.hasValue(R.styleable.PullToRefresh_ptrHeaderTextColor)) {
+			ColorStateList colors = attrs.getColorStateList(R.styleable.PullToRefresh_ptrHeaderTextColor);
+			setTextColor(null != colors ? colors : ColorStateList.valueOf(0xFF000000));
+		}
+
+		reset();
 	}
 
 	public void reset() {
-		headerText.setText(pullLabel);
-		headerImage.setVisibility(View.VISIBLE);
-		headerProgress.setVisibility(View.GONE);
+		mHeaderText.setText(Html.fromHtml(mPullLabel));
+		mHeaderImage.setVisibility(View.VISIBLE);
+		mHeaderProgress.setVisibility(View.GONE);
+		if (TextUtils.isEmpty(mSubHeaderText.getText())) {
+			mSubHeaderText.setVisibility(View.GONE);
+		} else {
+			mSubHeaderText.setVisibility(View.VISIBLE);
+		}
 	}
 
 	public void releaseToRefresh() {
-		headerText.setText(releaseLabel);
-		headerImage.clearAnimation();
-		headerImage.startAnimation(rotateAnimation);
+		mHeaderText.setText(Html.fromHtml(mReleaseLabel));
+		mHeaderImage.clearAnimation();
+		mHeaderImage.startAnimation(mRotateAnimation);
 	}
 
 	public void setPullLabel(String pullLabel) {
-		this.pullLabel = pullLabel;
+		mPullLabel = pullLabel;
 	}
 
 	public void refreshing() {
-		headerText.setText(refreshingLabel);
-		headerImage.clearAnimation();
-		headerImage.setVisibility(View.INVISIBLE);
-		headerProgress.setVisibility(View.VISIBLE);
+		mHeaderText.setText(Html.fromHtml(mRefreshingLabel));
+		mHeaderImage.clearAnimation();
+		mHeaderImage.setVisibility(View.INVISIBLE);
+		mHeaderProgress.setVisibility(View.VISIBLE);
+		mSubHeaderText.setVisibility(View.GONE);
 	}
 
 	public void setRefreshingLabel(String refreshingLabel) {
-		this.refreshingLabel = refreshingLabel;
+		mRefreshingLabel = refreshingLabel;
 	}
 
 	public void setReleaseLabel(String releaseLabel) {
-		this.releaseLabel = releaseLabel;
+		mReleaseLabel = releaseLabel;
 	}
 
 	public void pullToRefresh() {
-		headerText.setText(pullLabel);
-		headerImage.clearAnimation();
-		headerImage.startAnimation(resetRotateAnimation);
+		mHeaderText.setText(Html.fromHtml(mPullLabel));
+		mHeaderImage.clearAnimation();
+		mHeaderImage.startAnimation(mResetRotateAnimation);
+	}
+
+	public void setTextColor(ColorStateList color) {
+		mHeaderText.setTextColor(color);
+		mSubHeaderText.setTextColor(color);
 	}
 
 	public void setTextColor(int color) {
-		headerText.setTextColor(color);
+		setTextColor(ColorStateList.valueOf(color));
 	}
 
+	public void setSubHeaderText(CharSequence label) {
+		if (TextUtils.isEmpty(label)) {
+			mSubHeaderText.setVisibility(View.GONE);
+		} else {
+			mSubHeaderText.setText(label);
+			mSubHeaderText.setVisibility(View.VISIBLE);
+		}
+	}
 }
