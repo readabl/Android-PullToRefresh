@@ -3,6 +3,7 @@ package com.handmark.pulltorefresh.library.internal;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -55,6 +56,13 @@ public class LoadingLayout extends FrameLayout {
 		mResetRotateAnimation.setInterpolator(interpolator);
 		mResetRotateAnimation.setDuration(DEFAULT_ROTATION_ANIMATION_DURATION);
 		mResetRotateAnimation.setFillAfter(true);
+
+		if (attrs.hasValue(R.styleable.PullToRefresh_ptrHeaderBackground)) {
+        Drawable background = attrs.getDrawable(R.styleable.PullToRefresh_ptrHeaderBackground);
+        if (null != background) {
+            setBackgroundDrawable(background);
+        }
+		}
 
 		switch (mode) {
 			case PullToRefreshBase.MODE_PULL_UP_TO_REFRESH:
